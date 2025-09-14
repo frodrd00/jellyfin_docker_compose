@@ -1,0 +1,35 @@
+# Environment files
+.env
+.env.local
+.env.production
+.env.staging
+
+# Configuration files that might contain sensitive data
+*/config/
+*/appdata/
+*/cache/
+*/backup/
+*/data/
+
+# Log files
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.temp
