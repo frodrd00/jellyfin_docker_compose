@@ -1,0 +1,250 @@
+networks:
+  media:
+    name: media
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16
+          gateway: 172.22.0.1
+
+services:
+  jellyfin:
+    container_name: jellyfin
+    image: jellyfin/jellyfin
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    ports:
+      - 8096:8096/tcp
+    security_opt:
+      # enables full access to /sys and /proc, still far better than privileged: true
+      - systempaths=unconfined
+      - apparmor=unconfined
+    group_add:
+      - "44" # video group
+    devices:
+      - /dev/dri:/dev/dri
+      - /dev/dma_heap:/dev/dma_heap
+      - /dev/mali0:/dev/mali0
+      - /dev/rga:/dev/rga
+      - /dev/mpp_service:/dev/mpp_service
+    volumes:
+      - ${CONFIG_DIR}/jellyfin/config:/config
+      - ${CONFIG_DIR}/jellyfin/cache:/cache
+      - ${DATA_DIR}/media:/data/media
+    restart: always
+    networks:
+      media:
+        ipv4_address: 172.22.0.2
+
+  jellyseerr:
+    container_name: jellyseerr
+    image: ghcr.io/fallenbagel/jellyseerr:latest
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - LOG_LEVEL=debug
+    ports:
+      - 5055:5055
+    volumes:
+      - ${CONFIG_DIR}/jellyseerr/config:/app/config
+    restart: always
+    networks:
+      media:
+        ipv4_address: 172.22.0.3
+
+  homarr:
+    container_name: homarr
+    image: ghcr.io/homarr-labs/homarr:v1.37.0
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    restart: always
+    networks:
+      media:
+        ipv4_address: 172.22.0.4
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # Optional, only if you want docker integration
+      - ${CONFIG_DIR}/arrs/homarr/configs:/app/data/configs
+      - ${CONFIG_DIR}/arrs/homarr/icons:/app/public/icons
+      - ${CONFIG_DIR}/arrs/homarr/data:/data
+    ports:
+      - 7575:7575
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_DIR}/arrs/prowlarr/config:/config
+      - ${CONFIG_DIR}/arrs/prowlarr/backup:/data/backup
+    ports:
+      - 9696:9696
+    restart: always
+    dns:
+      - 8.8.8.8
+      - 4.4.4.4
+    networks:
+      media:
+        ipv4_address: 172.22.0.5
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_DIR}/arrs/sonarr/config:/config
+      - ${CONFIG_DIR}/arrs/sonarr/backup:/data/backup
+      - ${DATA_DIR}:/data
+    ports:
+      - 8989:8989
+    restart: always
+    networks:
+      media:
+        ipv4_address: 172.22.0.6
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_DIR}/arrs/radarr/data:/config
+      - ${CONFIG_DIR}/arrs/radarr/backup:/data/backup
+      - ${DATA_DIR}:/data
+    ports:
+      - 7878:7878
+    restart: always
+    networks:
+      media:
+        ipv4_address: 172.22.0.7
+
+  lidarr:
+    image: lscr.io/linuxserver/lidarr:latest
+    container_name: lidarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_DIR}/arrs/lidarr/config:/config
+      - ${CONFIG_DIR}/arrs/lidarr/backup:/data/backup
+      - ${DATA_DIR}:/data
+    ports:
+      - 8686:8686
+    restart: always
+    networks:
+      media:
+        ipv4_address: 172.22.0.8
+
+  readarr:
+    image: lscr.io/linuxserver/readarr:develop
+    container_name: readarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_DIR}/arrs/readarr/config:/config
+      - ${CONFIG_DIR}/arrs/readarr/backup:/data/backup
+      - ${DATA_DIR}:/data
+    ports:
+      - 8787:8787
+    restart: always
+    networks:
+      media:
+        ipv4_address: 172.22.0.9
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - WEBUI_PORT=8090
+      - TORRENTING_PORT=6881
+    volumes:
+      - ${CONFIG_DIR}/qbittorrent/appdata:/config
+      - ${DATA_DIR}/torrents:/data/torrents
+    ports:
+      - 8090:8090
+      - 6881:6881
+      - 6881:6881/udp
+    networks:
+      media:
+        ipv4_address: 172.22.0.10
+    restart: always
+
+  cloudflared:
+    container_name: cloudflared-jellyfin
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TOKEN}
+    restart: always
+    networks:
+      media:
+        ipv4_address: 172.22.0.11
+
+  flaresolverr:
+    # DockerHub mirror flaresolverr/flaresolverr:latest
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=info
+      - LOG_HTML=false
+      - CAPTCHA_SOLVER=none
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    ports:
+      - 8191:8191
+    restart: always
+    networks:
+      media:
+        ipv4_address: 172.22.0.12
+
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_DIR}/sabnzbd/config:/config
+      - ${CONFIG_DIR}/sabnzbd/backup:/backup
+      - ${DATA_DIR}/usenet:/data/usenet
+    ports:
+      - 8085:8085
+    restart: always
+    networks:
+      media:
+        ipv4_address: 172.22.0.13
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_DIR}/bazarr/config:/config
+      - ${DATA_DIR}/media:/data/media
+    ports:
+      - 6767:6767
+    restart: always
+    networks:
+      media:
+        ipv4_address: 172.22.0.14
