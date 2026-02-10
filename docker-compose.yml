@@ -10,7 +10,7 @@ networks:
 services:
   jellyfin:
     container_name: jellyfin
-    image: jellyfin/jellyfin
+    image: jellyfin/jellyfin:latest
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -37,7 +37,6 @@ services:
     networks:
       media:
         ipv4_address: 172.22.0.2
-
   jellyseerr:
     container_name: jellyseerr
     image: ghcr.io/fallenbagel/jellyseerr:latest
@@ -54,26 +53,20 @@ services:
     networks:
       media:
         ipv4_address: 172.22.0.3
-
   homarr:
     container_name: homarr
-    image: ghcr.io/homarr-labs/homarr:v1.37.0
+    image: ghcr.io/homarr-labs/homarr:latest
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # Optional, only if you want docker integration
+      - ${CONFIG_DIR}/arrs/homarr/appdata:/appdata
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    restart: always
+      - SECRET_ENCRYPTION_KEY=${SECRET_ENCRYPTION_KEY}
+    ports:
+      - 7575:7575
     networks:
       media:
         ipv4_address: 172.22.0.4
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock # Optional, only if you want docker integration
-      - ${CONFIG_DIR}/arrs/homarr/configs:/app/data/configs
-      - ${CONFIG_DIR}/arrs/homarr/icons:/app/public/icons
-      - ${CONFIG_DIR}/arrs/homarr/data:/data
-    ports:
-      - 7575:7575
-
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
@@ -93,7 +86,6 @@ services:
     networks:
       media:
         ipv4_address: 172.22.0.5
-
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
     container_name: sonarr
@@ -111,7 +103,6 @@ services:
     networks:
       media:
         ipv4_address: 172.22.0.6
-
   radarr:
     image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
@@ -129,7 +120,6 @@ services:
     networks:
       media:
         ipv4_address: 172.22.0.7
-
   lidarr:
     image: lscr.io/linuxserver/lidarr:latest
     container_name: lidarr
@@ -147,25 +137,6 @@ services:
     networks:
       media:
         ipv4_address: 172.22.0.8
-
-  readarr:
-    image: lscr.io/linuxserver/readarr:develop
-    container_name: readarr
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    volumes:
-      - ${CONFIG_DIR}/arrs/readarr/config:/config
-      - ${CONFIG_DIR}/arrs/readarr/backup:/data/backup
-      - ${DATA_DIR}:/data
-    ports:
-      - 8787:8787
-    restart: always
-    networks:
-      media:
-        ipv4_address: 172.22.0.9
-
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
@@ -186,7 +157,6 @@ services:
       media:
         ipv4_address: 172.22.0.10
     restart: always
-
   cloudflared:
     container_name: cloudflared-jellyfin
     image: cloudflare/cloudflared:latest
@@ -195,7 +165,6 @@ services:
     networks:
       media:
         ipv4_address: 172.22.0.11
-
   flaresolverr:
     # DockerHub mirror flaresolverr/flaresolverr:latest
     image: ghcr.io/flaresolverr/flaresolverr:latest
@@ -213,7 +182,6 @@ services:
     networks:
       media:
         ipv4_address: 172.22.0.12
-
   sabnzbd:
     image: lscr.io/linuxserver/sabnzbd:latest
     container_name: sabnzbd
@@ -231,7 +199,6 @@ services:
     networks:
       media:
         ipv4_address: 172.22.0.13
-
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
     container_name: bazarr

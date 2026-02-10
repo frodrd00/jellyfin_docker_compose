@@ -11,7 +11,6 @@ A complete media server setup using Docker Compose with Jellyfin, the *arr suite
 - **Sonarr**: TV series management
 - **Radarr**: Movie management  
 - **Lidarr**: Music management
-- **Readarr**: Book management
 - **qBittorrent**: BitTorrent client
 - **SABnzbd**: Usenet downloader
 - **Bazarr**: Subtitle management
@@ -38,11 +37,12 @@ A complete media server setup using Docker Compose with Jellyfin, the *arr suite
    - Set your user ID and group ID (`id` command to find yours)
    - Configure your timezone
    - Set your directory paths
+   - Generate a secret encryption key for Homarr: `openssl rand -hex 32`
    - Add your Cloudflare tunnel token (optional)
 
 4. **Create the directory structure**
    ```bash
-   mkdir -p $CONFIG_DIR/{jellyfin/{config,cache},jellyseerr/config,arrs/{homarr/{configs,icons,data},prowlarr/{config,backup},sonarr/{config,backup},radarr/{data,backup},lidarr/{config,backup},readarr/{config,backup}},qbittorrent/appdata,sabnzbd/{config,backup},bazarr/config}
+   mkdir -p $CONFIG_DIR/{jellyfin/{config,cache},jellyseerr/config,arrs/{homarr/appdata,prowlarr/{config,backup},sonarr/{config,backup},radarr/{data,backup},lidarr/{config,backup}},qbittorrent/appdata,sabnzbd/{config,backup},bazarr/config}
    mkdir -p $DATA_DIR/{media/{movies,tv,music,books},torrents/{complete,incomplete},usenet/{complete,incomplete}}
    ```
 
@@ -61,12 +61,11 @@ $CONFIG_DIR/
 │   └── cache/
 ├── jellyseerr/config/
 ├── arrs/
-│   ├── homarr/{configs,icons,data}/
+│   ├── homarr/appdata/
 │   ├── prowlarr/{config,backup}/
 │   ├── sonarr/{config,backup}/
 │   ├── radarr/{data,backup}/
-│   ├── lidarr/{config,backup}/
-│   └── readarr/{config,backup}/
+│   └── lidarr/{config,backup}/
 ├── qbittorrent/appdata/
 ├── sabnzbd/{config,backup}/
 └── bazarr/config/
@@ -89,7 +88,6 @@ $DATA_DIR/
 - Sonarr: http://localhost:8989
 - Radarr: http://localhost:7878
 - Lidarr: http://localhost:8686
-- Readarr: http://localhost:8787
 - qBittorrent: http://localhost:8090
 - SABnzbd: http://localhost:8085
 - Bazarr: http://localhost:6767
@@ -104,6 +102,7 @@ $DATA_DIR/
 | `TZ` | Timezone | `America/New_York` |
 | `CONFIG_DIR` | Base path for app configurations | `/home/user/apps` |
 | `DATA_DIR` | Base path for media and downloads | `/home/user/data` |
+| `SECRET_ENCRYPTION_KEY` | 64-char hex string for Homarr (required) | Generate with `openssl rand -hex 32` |
 | `CLOUDFLARE_TOKEN` | Cloudflare tunnel token (optional) | `your_token_here` |
 
 ## 🔒 Security Notes
