@@ -77,6 +77,7 @@ docker stats
 cp .env.example .env
 
 # Create required directory structure
+# The jellyseerr directory name is retained so Seerr can migrate existing data in place.
 mkdir -p $CONFIG_DIR/{jellyfin/{config,cache},jellyseerr/config,arrs/{homarr/appdata,prowlarr/{config,backup},sonarr/{config,backup},radarr/{data,backup},lidarr/{config,backup}},qbittorrent/appdata,sabnzbd/{config,backup},bazarr/config}
 mkdir -p $DATA_DIR/{media/{movies,tv,music,books},torrents/{complete,incomplete},usenet/{complete,incomplete}}
 ```
