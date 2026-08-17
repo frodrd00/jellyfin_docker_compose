@@ -37,17 +37,17 @@ services:
     networks:
       media:
         ipv4_address: 172.22.0.2
-  jellyseerr:
-    container_name: jellyseerr
-    image: ghcr.io/fallenbagel/jellyseerr:latest
+  seerr:
+    container_name: seerr
+    image: ghcr.io/seerr-team/seerr:latest
+    init: true
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
       - TZ=${TZ}
       - LOG_LEVEL=debug
     ports:
       - 5055:5055
     volumes:
+      # Keep the existing Jellyseerr directory so Seerr can migrate its data in place.
       - ${CONFIG_DIR}/jellyseerr/config:/app/config
     restart: always
     networks:
