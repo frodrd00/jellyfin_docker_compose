@@ -49,6 +49,8 @@ A complete Docker Compose media server stack with Jellyfin, the *arr suite, down
 
 4. Validate and start the stack:
 
+   This Quick Start is for fresh installations. If an existing deployment still uses Jellyseerr, follow the [migration procedure](docs/server-configuration.md#migrate-jellyseerr-to-seerr) first; do not run the generic start command until Jellyseerr is stopped.
+
    ```bash
    docker compose config --quiet
    docker compose up -d
